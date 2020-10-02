@@ -8,7 +8,8 @@ const {
     access_token_secret,
     discord_prefix,
     discord_token,
-    discord_channel
+    discord_channel,
+    donation_link
 } = require('./config.json');
 
 var logType = ['ERROR', 'CONN', 'INFO', 'DEBUG'];
@@ -79,6 +80,15 @@ client.on('message', message => {
 
     if(message.content.startsWith(`${discord_prefix}connect`)) {
         Tweeter.emit('start');
+    }
+
+    if(message.content.startsWith(`${discord_prefix}donate`)) {
+        const embedMessage = new Discord.MessageEmbed()
+        .setColor('#1DA1F2')
+        .setAuthor('Donation Info', client.user.avatarURL(), donation_link)
+        .setDescription("Tweeter is just one of many projects I'm working on. If you love Tweeter please consider donating to help support the development of this" + 
+        "bot and many more to come! Donating also helps invest in better hardware to run this bot.")
+        message.channel.send(embedMessage);
     }
 });
 
