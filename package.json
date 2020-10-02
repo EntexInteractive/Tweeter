@@ -1,0 +1,21 @@
+{
+  "name": "tweeter",
+  "version": "0.2.0",
+  "description": "A bot that forwards tweets to Discord",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kyle (TheGuitarleader)",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.3.1",
+    "moment": "^2.29.0",
+    "twit": "^2.2.11",
+    "twitter": "^1.7.1",
+    "twitter-lite": "^0.14.0"
+  },
+  "devDependencies": {
+    "electron-packager": "^15.1.0"
+  }
+}
