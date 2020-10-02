@@ -33,7 +33,7 @@ client.once('connected', () => {
 
 client.once('ready', () => {
     consoleLog(logType[1], 'Connected to Discord API');
-    client.user.setStatus('dnd');
+    client.user.setPresence({ activity: { name: 'Now 24/7' }, status: 'dnd' });
     Tweeter.emit('start');
 });
 
@@ -91,17 +91,17 @@ Tweeter.on('start', function (save) {
 
     stream.on('connect', function (request) {
         consoleLog(logType[1], 'Connecting to Twitter API...');
-        client.user.setStatus('idle');
+        client.user.setPresence({ activity: { name: 'Connecting...' }, status: 'idle' });
     });
 
     stream.on('connected', function (response) {
         consoleLog(logType[1], 'Connected to Twitter API');
-        client.user.setStatus('online');
+        client.user.setPresence({ activity: { name: 'Now 24/7' }, status: 'online' });
     });
 
     stream.on('disconnected', function (disconnectMessage) {
         consoleLog(logType[1], 'Disconnected from Twitter API');
-        client.user.setStatus('dnd');
+        client.user.setPresence({ activity: { name: 'Disconnected' }, status: 'dnd' });
         sleep(2000);
         stream.start();
     });
@@ -138,7 +138,6 @@ Tweeter.on('start', function (save) {
         sleep(1000);
         stream.start();
         client.channels.cache.get(discord_channel).send(':white_check_mark: Attempting connection to data stream');
-        client.user.setStatus('dnd');
     })
 });
 
