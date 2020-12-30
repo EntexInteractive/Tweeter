@@ -1,15 +1,31 @@
 const Discord = require('discord.js');
+const Client = require('./client/client');
 const fs = require('fs');
 const Twit = require('twit');
 const config = require('./config.json');
+const package = require('./package.json');
+const clock = require('date-events')();
+const logger = require('kailogs');
 
-var logType = ['ERROR', 'CONN', 'INFO', 'DEBUG'];
+const client = new Client();
+client.commands = new Discord.Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
-consoleLog(logType[1], 'Connecting to Gateway...');
+const sqlite = require('sqlite3').verbose();
+let db = new sqlite.Database('./Tweeter.db');
 
-const client = new Discord.Client();
+for(const file of commandFiles) {
+    const command = require(`./commands/${file}`);
+    client.commands.set(command.name, command);
+}
+
+logger.loadLog('./logs');
+logger.log(`${package.name} v${package.version}`, 'main');
+client.login(config.discord.token);
 
 var EventEmitter = require('events');
+const { resolve } = require('path');
+const { rejects } = require('assert');
 var Tweeter = new EventEmitter();
 var Twitter = new Twit({
     consumer_key: config.twitter.consumer_key,
@@ -18,134 +34,137 @@ var Twitter = new Twit({
     access_token_secret: config.twitter.access_token_secret
 });
 
-// Discord
-client.once('connected', () => {
-    consoleLog(logType[1], 'Connected to Discord API');
-});
-
 client.once('ready', () => {
-    consoleLog(logType[1], 'Connected to Discord API');
-    client.user.setPresence({ activity: { name: 'Now 24/7' }, status: 'dnd' });
+    logger.log('Connected to Discord API', 'main');
+    client.user.setStatus('dnd');
+    //client.user.setPresence({ activity: { name: 'Disconnected' }, status: 'dnd' });
     Tweeter.emit('start');
 });
 
-client.once('error', () => {
-    consoleLog(logType[0],'Error connecting to Discord API');
-});
-
 client.once('disconnect', () => {
-    consoleLog(logType[1], 'Disconnected from Discord API');
+    logger.warn('Disconnected from Discord API', 'main');
 });
 
 client.on('message', message => {
-    if (message.content.startsWith(`${config.discord.prefix}ping`)) {
-        message.channel.send("Pinging...").then(msg =>{
-              var botping = Math.round(client.ws.ping)
-              var ping = msg.createdTimestamp - message.createdTimestamp;
-  
-              var embed = new Discord.MessageEmbed()
-              .setDescription(":hourglass_flowing_sand: " + ping + "ms\n\n:stopwatch: " + botping + "ms")
-              .setColor('#1DA1F2')
-              
-              msg.delete();
-              message.channel.send(embed);
-        });
-    }
+    if(message.author.bot) return;
 
-    if(message.content.startsWith(`${config.discord.prefix}list`)) {
-        const embedMessage = new Discord.MessageEmbed()
-        .setColor('#1DA1F2')
-        .setTitle('Currently following these Twitter accounts')
-        .setDescription('- @PlayApex\n- @shrugtal\n- @monsterhunter\n')
-    
-        message.channel.send(embedMessage);
-    }
+    db.get(`SELECT * FROM profiles WHERE guildID = ?`, [message.guild.id], (err, row) => {
+        if(err){
+            logger.error(err, 'main');
+        };
 
-    if(message.content.startsWith(`${config.discord.prefix}test`)) {
-        client.channels.cache.get(config.discord.channel).send(':white_check_mark: Your tweets will show up here!');
-    }
+        if(!message.content.startsWith(row.botPrefix)) return;
 
-    if(message.content.startsWith(`${config.discord.prefix}disconnect`)) {
-        Tweeter.emit('stop');
-    }
-
-    if(message.content.startsWith(`${config.discord.prefix}connect`)) {
-        Tweeter.emit('start');
-    }
-
-    if(message.content.startsWith(`${config.discord.prefix}stop`)) {
-        if(message.member.hasPermission('ADMINISTRATOR')) {
-            message.channel.send(":white_check_mark: Shutting down...").then(msg => {
-                process.exit();
-            });
-        } else {
-            message.channel.send(":rage: You can't kill me!");
+        if (message.member.id == config.discord.devID)
+        {
+            if(message.content.startsWith(`${row.botPrefix}disconnect`)) {
+                Tweeter.emit('stop');
+            }
+        
+            if(message.content.startsWith(`${row.botPrefix}connect`)) {
+                Tweeter.emit('start');
+            }
         }
-    }
-
-    if(message.content.startsWith(`${config.discord.prefix}donate`)) {
-        const embedMessage = new Discord.MessageEmbed()
-        .setColor('#1DA1F2')
-        .setAuthor('Donation Info', client.user.avatarURL(), config.discord.donation_link)
-        .setDescription("Tweeter is just one of many projects I'm working on. If you love Tweeter please consider donating to help support the development of this" + 
-        "bot and many more to come! Donating also helps invest in better hardware to run this bot.")
-        message.channel.send(embedMessage);
-    }
+        
+        try {
+            const args = message.content.slice(row.botPrefix.length).split(/ +/);
+            const commandName = args.shift().toLowerCase();
+            const command = client.commands.get(commandName);
+            command.execute(message, client, row); 
+            logger.log(`Ran command: '${command.name}' from '${message.author.username}' (${message.guild.name})`, 'main');
+            
+        } catch(err) {
+            logger.warn(`Unknown command: '${message.content}' from '${message.author.username}' (${message.guild.name})`, 'main');
+            logger.error(err, 'main');
+        }
+    
+        if(row.guildID == null) 
+        {
+            logger.warn(`GuildID: '${message.guild.id}' (${message.guild.name}) came back null!`, 'main');
+        }
+    });
 });
-
-client.login(config.discord.token);
 
 // Twitter
 Tweeter.on('start', function (save) {
-    let userIds = config.twitter.followed_accounts
-    var stream = Twitter.stream('statuses/filter', { follow: userIds });
+    getUsers().then((users) => {
+        console.log(users);
+        var stream = Twitter.stream('statuses/filter', { follow: users });
 
-    stream.on('connect', function (request) {
-        consoleLog(logType[1], 'Connecting to Twitter API...');
-        client.user.setPresence({ activity: { name: 'Connecting...' }, status: 'idle' });
-    });
+        stream.on('connect', function (request) {
+            logger.log('Connecting to Twitter API...', 'main');
+            //client.user.setPresence({ activity: { name: 'Connecting...' }, status: 'idle' });
+            client.user.setStatus('idle');
+        });
+    
+        stream.on('connected', function (response) {
+            logger.log('Connected to Twitter API', 'main');
+            //client.user.setPresence({ activity: { name: 'Now 24/7' }, status: 'online' });
+            client.user.setStatus('online');
+        });
+    
+        stream.on('disconnected', function (disconnectMessage) {
+            logger.warn('Disconnected from Twitter API', 'main');
+            //client.user.setPresence({ activity: { name: 'Disconnected' }, status: 'dnd' });
+            client.user.setStatus('dnd');
+        });
+    
+        stream.on('tweet', function (tweet) {
+            logger.log(`Received tweet: '@${tweet.user.screen_name}'`, 'main');
+            console.log(users);
 
-    stream.on('connected', function (response) {
-        consoleLog(logType[1], 'Connected to Twitter API');
-        client.user.setPresence({ activity: { name: 'Now 24/7' }, status: 'online' });
-    });
+            users.forEach((u) => {
+                if(u.includes(tweet.user.id))
+                {
+                    db.all(`SELECT * FROM following WHERE accountID = ${tweet.user.id}`, (err, rows) => {
+                        rows.forEach((row) => {
+                            db.get(`SELECT * FROM profiles WHERE guildID = ?`, [row.guildID], (err, channel) => {
+                                if(err) {
+                                    logger.error(err, 'main');
+                                }
+                                const embedMessage = new Discord.MessageEmbed()
+                                .setColor(config.discord.embed)
+                                .setAuthor(tweet.user.name + ' (@' + tweet.user.screen_name + ')', tweet.user.profile_image_url, 'https://twitter.com/' + tweet.user.screen_name + '/status/' + tweet.id_str)
+                                .setDescription(tweet.text)
+                                .addField("Following", tweet.user.friends_count, true)
+                                .addField("Followers", tweet.user.followers_count, true)
+                                .setFooter('From Twitter')
+                            
+                                var guild = client.guilds.cache.get(row.guildID);
+                                logger.log(`Forwarding tweet from '${tweet.user.screen_name}' to '${guild.name}' ->`, 'main');
+                                client.channels.cache.get(channel.channelID).send(embedMessage);
+                            });
+                        });
+                    });
+                }
+            })
+        });
 
-    stream.on('disconnected', function (disconnectMessage) {
-        consoleLog(logType[1], 'Disconnected from Twitter API');
-        client.user.setPresence({ activity: { name: 'Disconnected' }, status: 'dnd' });
-        sleep(2000);
-        stream.start();
-    });
-
-    stream.on('tweet', function (tweet) {
-        //consoleLog(logType[3], `Received tweet: ${tweet.id}`);
-        if(!tweet.text.startsWith('RT'))
-        {
-            if(userIds.includes(tweet.user.id))
-            {
-                const embedMessage = new Discord.MessageEmbed()
-                .setColor('#1DA1F2')
-                .setAuthor(tweet.user.name + ' (@' + tweet.user.screen_name + ')', tweet.user.profile_image_url, 'https://twitter.com/' + tweet.user.screen_name + '/status/' + tweet.id_str)
-                .setDescription(tweet.text)
-                .addField("Following", tweet.user.friends_count, true)
-                .addField("Followers", tweet.user.followers_count, true)
-                .setFooter('From Twitter')
-            
-                consoleLog(logType[2], `Forwarding tweet from ${tweet.user.screen_name} to Discord ->`);
-                client.channels.cache.get(config.discord.channel).send(embedMessage);
-            }
-        }
+        clock.on('hour', function (date) {
+            logger.log("Refreshing Twitter stream...", 'main');
+            stream.stop();
+            stream.start();
+        });
     });
 });
 
-function sleep(ms) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-}
+// Saves the log at 11:59pm
+clock.on('23:59', function (date) {
+    logger.log("End of logging for today. Saving log...", 'main');
+    logger.save();
+    logger.createLog('./logs');
+});
 
-function consoleLog(type, message) {
-    var time = require('moment');
-    var currentTime = time().format('HH:mm:ss');
-    return console.log(`[${currentTime}] [${type}]: ${message}`);
+const getUsers = () => {
+    return new Promise((res, rej) => {
+        let result = [];
+        db.each(`SELECT ID FROM accounts`, (err, row) => {
+            if(err) {
+                rej(err)
+            }
+            result.push(row.ID);
+        }, () => {
+            res(result);
+        })
+    })
 }

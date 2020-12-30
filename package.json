@@ -1,21 +1,33 @@
 {
   "name": "tweeter",
-  "version": "0.2.0",
-  "description": "A bot that forwards tweets to Discord",
+  "version": "2.0.0",
+  "description": "A bot that forwards tweets to Discord servers.",
   "main": "main.js",
+  "dependencies": {
+    "date-events": "^1.0.1",
+    "discord.js": "^12.3.1",
+    "electron-packager": "^15.1.0",
+    "kailogs": "^2.0.0",
+    "moment": "^2.29.0",
+    "sqlite3": "^5.0.0",
+    "twit": "^2.2.11"
+  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheGuitarleader/Tweeter.git"
+  },
+  "keywords": [
+    "twitter",
+    "discord"
+  ],
   "author": "Kyle (TheGuitarleader)",
   "license": "ISC",
-  "dependencies": {
-    "discord.js": "^12.3.1",
-    "moment": "^2.29.0",
-    "twit": "^2.2.11",
-    "twitter": "^1.7.1",
-    "twitter-lite": "^0.14.0"
+  "bugs": {
+    "url": "https://github.com/TheGuitarleader/Tweeter/issues"
   },
-  "devDependencies": {
-    "electron-packager": "^15.1.0"
-  }
+  "homepage": "https://github.com/TheGuitarleader/Tweeter#readme"
 }
