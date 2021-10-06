@@ -9,10 +9,9 @@
     "electron-packager": "^15.1.0",
     "kailogs": "^3.0.0",
     "moment": "^2.29.0",
-    "sqlite3": "^5.0.0",
+    "sqlite3": "^4.2.0",
     "twit": "^2.2.11"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
