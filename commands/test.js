@@ -14,5 +14,7 @@ module.exports = {
             console.log(row);
             client.channels.cache.get(row.channelID).send("<:Twitter:785747426614444042> **Tweets will show up here!**");
         });
+
+        message.channel.send(":white_check_mark: **Test message sent in active tweet channel!**")
     }
 }

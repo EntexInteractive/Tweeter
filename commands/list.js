@@ -18,7 +18,12 @@ module.exports = {
             embed.setTitle("Currently Following");
             rows.forEach((row) => {
                 console.log(row);
-                embed.addField(row.accountName, '`@' + row.accountTag + '`');
+                if(row.favorite == "true") {
+                    embed.addField(row.accountName + ' :star:', "@" + row.accountTag);
+                }
+                else if(row.favorite == "false") {
+                    embed.addField(row.accountName, "@" + row.accountTag);
+                }
             });
             message.channel.send(embed);
         });

@@ -25,7 +25,7 @@ declare namespace KaiLogs {
      */
     export function debug(
         message: string,
-        where?: "main" | "clnt" | "cmnd" | "dtbs" | "evnt" | "fnct" | "atmd"
+        where?: "main" | "client" | "command" | "database" | "event" | "function" | "interaction" | "player"
     )
 
     /**
@@ -45,7 +45,7 @@ declare namespace KaiLogs {
      */
     export function error(
         message: string,
-        where?: "main" | "clnt" | "cmnd" | "dtbs" | "evnt" | "fnct" | "atmd"
+        where?: "main" | "client" | "command" | "database" | "event" | "function" | "interaction" | "player"
     )
 
     /**
@@ -56,7 +56,7 @@ declare namespace KaiLogs {
      */
     export function log(
         message: string,
-        where?: "main" | "clnt" | "cmnd" | "dtbs" | "evnt" | "fnct" | "atmd"
+        where?: "main" | "client" | "command" | "database" | "event" | "function" | "interaction" | "player"
     )
 
     /**
@@ -77,7 +77,7 @@ declare namespace KaiLogs {
      */
     export function warn(
         message: string,
-        where?: "main" | "clnt" | "cmnd" | "dtbs" | "evnt" | "fnct" | "atmd"
+        where?: "main" | "client" | "command" | "database" | "event" | "function" | "interaction" | "player"
     )
 
     /**
@@ -89,7 +89,7 @@ declare namespace KaiLogs {
      */
     export function write(
         message: string,
-        where?: "main" | "clnt" | "cmnd" | "dtbs" | "evnt" | "fnct" | "atmd",
+        where?: "main" | "client" | "command" | "database" | "event" | "function" | "interaction" | "player",
         type?: "DEBUG" | "INFO" | "WARN" | "ERROR"
     )
 

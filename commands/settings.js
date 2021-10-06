@@ -28,22 +28,10 @@ module.exports = {
                     .setColor(config.discord.embed)
                     .setAuthor("Settings", message.guild.iconURL())
                     .addField("botPrefix", "`" + row.botPrefix + "`")
-                    .addField("tweetChannel", "`" + row.channelID + "`")
+                    .addField("showReplies", "`" + row.showReplies + "`")
+                    .addField("showRetweets", "`" + row.showRetweets + "`")
+                    .addField("tweetChannel", "`" + row.channelID + "`")                 
                     message.channel.send(commandEmbed);
-                });
-            }
-            else if(setting == "botprefix")
-            {
-                db.run(`UPDATE profiles SET botPrefix = "${args[2]}" WHERE guildID = ${message.guild.id}`, (err) => {
-                    if(err)
-                    {
-                        logger.error(err, 'main');
-                        message.channel.send(":x: **Failed to change prefix!**");
-                    }
-                    else
-                    {
-                        message.channel.send(":white_check_mark: **Successfully changed prefix to** `" + args[2] + "` :thumbsup:");
-                    }
                 });
             }
             else if(setting == "setchannel")
@@ -56,13 +44,23 @@ module.exports = {
                     }
                     else
                     {
-                        message.channel.send(":white_check_mark: **Successfully set channel** :thumbsup:");
+                        message.channel.send(":white_check_mark: **Successfully set channel as tweetChannel**");
                     }
                 });
             }
             else
             {
-                message.channel.send(":x: `"+ setting +"`** is not a vaild setting!**")
+                var newSetting = args[2].toLowerCase();
+                db.run(`UPDATE profiles SET ${setting} = "${newSetting}" WHERE guildID = "${message.guild.id}"`, function(err) {
+                    if(err) {
+                        message.channel.send(":x: `"+ setting +"`** is not a vaild setting!**");
+                        logger.error(err, 'cmnd');
+                    }
+                    else
+                    {
+                        message.channel.send(':white_check_mark: **Successfully changed `' + setting + '` to `' + newSetting + '`**');
+                    }
+                });
             }
         }
     }

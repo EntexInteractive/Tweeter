@@ -13,7 +13,7 @@ module.exports = {
         var changelog = await readChangelog('./textfiles/changelog.txt');
         
         const embed = new Discord.MessageEmbed()
-        .setColor(config.discord.embed_hex)
+        .setColor(config.discord.embed)
         .setTitle(`What's new with ${message.client.user.username} v${package.version}?`)
         .setDescription(changelog)
 

@@ -11,7 +11,7 @@ module.exports = {
     stat: null,
     async execute(message, client, settings) {
         var options = {
-            url: 'https://api.github.com/repos/TheGuitarleader/Kai.js',
+            url: 'https://api.github.com/repos/TheGuitarleader/Tweeter',
             headers: {
               'User-Agent': 'theguitarleader'
             }
@@ -22,11 +22,12 @@ module.exports = {
                 var info = JSON.parse(body);
 
                 const embed = new Discord.MessageEmbed()
-                .setColor(config.discord.embed_hex)
+                .setColor(config.discord.embed)
                 .setTitle(`${info.name} v${package.version}`)
                 .setThumbnail(client.user.avatarURL())
-                .setDescription(`Made by Kyle Ebby\n\n` +
-                `Built on:\nDiscord.js v${package.dependencies["discord.js"].replace("^","")}\n`)
+                .setDescription(`Made by Kyle Ebby\n(TheGuitarleader)\n\n` +
+                `Built on:\nDiscord.js v${package.dependencies["discord.js"].replace("^","")}\n` +
+                `twit v${package.dependencies.twit.replace("^","")}`)
                 .addField("Active Servers", client.guilds.cache.size, false)
                 .addField("Stars", info.stargazers_count, true)
                 .addField("Issues", info.open_issues, true)

@@ -1,13 +1,13 @@
 {
   "name": "tweeter",
-  "version": "2.0.0",
+  "version": "3.0.3",
   "description": "A bot that forwards tweets to Discord servers.",
   "main": "main.js",
   "dependencies": {
     "date-events": "^1.0.1",
-    "discord.js": "^12.3.1",
+    "discord.js": "^12.5.3",
     "electron-packager": "^15.1.0",
-    "kailogs": "^2.0.0",
+    "kailogs": "^3.0.0",
     "moment": "^2.29.0",
     "sqlite3": "^5.0.0",
     "twit": "^2.2.11"
