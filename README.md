@@ -9,6 +9,7 @@ Tweeter follows your favorite Twitter accounts and in real-time forwards their t
 - Get the latest tweets and images from any twitter user, formatted for Discord.
 - Cross-post tweets from Twitter to Discord in *real-time**
 - Supports **retweets** and **replies**! Fully customizable!
+- Search for users or tweets!
 
 # FAQ
 ### How can I add Tweeter?
